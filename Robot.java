@@ -1,4 +1,4 @@
-// FRC Robotics Team 6213
+
 package org.usfirst.frc.team6213.robot;
 
 import edu.wpi.first.wpilibj.IterativeRobot;
@@ -83,21 +83,21 @@ public class Robot extends IterativeRobot { // Prep everything
     	boolean bButton = xbox.getRawButton(2); // B button status
     	boolean  yButton = xbox.getRawButton(4); // Y button status
     	ballWheel.enable(); // Enable CAN controller, try moving to initialization???
-    	
+
     	if(Fmove > 0){ // Moving Forwards
-    		move.drive(Fmove * -1, Turn);
+    		move.drive(Fmove * -0.75, Turn);
     	}
     	
     	else if(Rmove > 0){ // Moving Backwards
-    		move.drive(Rmove, Turn);
+    		move.drive(Rmove * 0.75, Turn);
     	}
     	
     	if(bButton){ // B button down, moves towards robot, intake
-        	ballWheel.set(-0.1);
+        	ballWheel.set(0.55);
     	}
     	
     	else if(yButton){ // Y button, moves away from robot, shoots
-        	ballWheel.set(1);
+        	ballWheel.set(-1);
     	}
     	else{ // Keep ball motor still by default
     		ballWheel.set(0);
