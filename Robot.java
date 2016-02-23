@@ -1,3 +1,4 @@
+// FRC Robotics Team 6213
 package org.usfirst.frc.team6213.robot;
 
 import edu.wpi.first.wpilibj.IterativeRobot;
@@ -16,7 +17,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  * creating this project, you must also update the manifest file in the resource
  * directory.
  */
-public class Robot extends IterativeRobot {
+public class Robot extends IterativeRobot { // Prep everything
     final String defaultAuto = "Default";
     final String customAuto = "My Auto";
     String autoSelected;
@@ -26,20 +27,20 @@ public class Robot extends IterativeRobot {
     JoystickButton bIn; // B button, rotates wheel towards robot
     JoystickButton yOut; // Y button, rotates wheel away from robot
 	CANTalon ballWheel ; // Talon to control the ball wheel motor
+	Timer time;
     /**
      * This function is run when the robot is first started up and should be
      * used for any initialization code.
      */
-    public void robotInit() {
+    public void robotInit() { // Initialize everything
         chooser = new SendableChooser();
         chooser.addDefault("Default Auto", defaultAuto);
         chooser.addObject("My Auto", customAuto);
         SmartDashboard.putData("Auto choices", chooser);
+        time = new Timer();
         move = new RobotDrive(0,1);
-        ballWheel = new CANTalon(2);
+        ballWheel = new CANTalon(1);
         xbox = new Joystick(0);
-        bIn = new JoystickButton(xbox,1);
-        yOut = new JoystickButton(xbox,3);
     }
     
 	/**
@@ -51,7 +52,7 @@ public class Robot extends IterativeRobot {
 	 * You can add additional auto modes by adding additional comparisons to the switch structure below with additional strings.
 	 * If using the SendableChooser make sure to add them to the chooser code above as well.
 	 */
-    public void autonomousInit() {
+    public void autonomousInit() { // Ignore :D
     	autoSelected = (String) chooser.getSelected();
 //		autoSelected = SmartDashboard.getString("Auto Selector", defaultAuto);
 		System.out.println("Auto selected: " + autoSelected);
@@ -60,7 +61,7 @@ public class Robot extends IterativeRobot {
     /**
      * This function is called periodically during autonomous
      */
-    public void autonomousPeriodic() {
+    public void autonomousPeriodic() { // More ignore :D
     	switch(autoSelected) {
     	case customAuto:
         //Put custom auto code here   
@@ -76,11 +77,12 @@ public class Robot extends IterativeRobot {
      * This function is called periodically during operator control
      */
     public void teleopPeriodic() {
-    	double Fmove = xbox.getRawAxis(3);
-    	double Rmove = xbox.getRawAxis(2);
-    	double Turn = xbox.getRawAxis(0);
-    	boolean wheelIn = bIn.get();
-    	boolean  wheelOut= yOut.get();
+    	double Fmove = xbox.getRawAxis(3); // Right trigger, forwards speed
+    	double Rmove = xbox.getRawAxis(2); // Left trigger, backwards speed
+    	double Turn = xbox.getRawAxis(0); // Left stick X, turning
+    	boolean bButton = xbox.getRawButton(2); // B button status
+    	boolean  yButton = xbox.getRawButton(4); // Y button status
+    	ballWheel.enable(); // Enable CAN controller, try moving to initialization???
     	
     	if(Fmove > 0){ // Moving Forwards
     		move.drive(Fmove * -1, Turn);
@@ -90,14 +92,16 @@ public class Robot extends IterativeRobot {
     		move.drive(Rmove, Turn);
     	}
     	
-    	if(wheelIn){
-    		ballWheel.set(1);
+    	if(bButton){ // B button down, moves towards robot, intake
+        	ballWheel.set(-0.1);
     	}
     	
-    	else if(wheelOut){
-    		ballWheel.set(-1);
+    	else if(yButton){ // Y button, moves away from robot, shoots
+        	ballWheel.set(1);
     	}
-       
+    	else{ // Keep ball motor still by default
+    		ballWheel.set(0);
+    	}
     }
  
     /**
