@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj.CANTalon;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.VictorSP;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -22,12 +23,12 @@ public class Robot extends IterativeRobot { // Prep everything
     final String customAuto = "My Auto";
     String autoSelected;
     SendableChooser chooser;
+    VictorSP left; // Left Victor
+    VictorSP right; // Right Victor
     RobotDrive move; // Drive train Motors
     Joystick xbox; // Xbox Controller
-    JoystickButton bIn; // B button, rotates wheel towards robot
-    JoystickButton yOut; // Y button, rotates wheel away from robot
 	CANTalon ballWheel ; // Talon to control the ball wheel motor
-	Timer time;
+	Timer time; // Timer
     /**
      * This function is run when the robot is first started up and should be
      * used for any initialization code.
@@ -38,8 +39,11 @@ public class Robot extends IterativeRobot { // Prep everything
         chooser.addObject("My Auto", customAuto);
         SmartDashboard.putData("Auto choices", chooser);
         time = new Timer();
-        move = new RobotDrive(0,1);
+        left = VictorSP(0);
+        right = VictorSP(1);
+        move = new RobotDrive(left,right);
         ballWheel = new CANTalon(1);
+        double maxSpeed = 0.25; // Used to set speed of robot
         xbox = new Joystick(0);
     }
     
@@ -68,7 +72,8 @@ public class Robot extends IterativeRobot { // Prep everything
             break;
     	case defaultAuto:
     	default:
-    	//Put default auto code here
+    		left.set(1.0);
+    		right.set(-1.0);
             break;
     	}
     }
@@ -82,14 +87,26 @@ public class Robot extends IterativeRobot { // Prep everything
     	double Turn = xbox.getRawAxis(0); // Left stick X, turning
     	boolean bButton = xbox.getRawButton(2); // B button status
     	boolean  yButton = xbox.getRawButton(4); // Y button status
-    	ballWheel.enable(); // Enable CAN controller, try moving to initialization???
-
+    	boolean aButton = xbox.getRawButton(3); // A button status
+    	ballWheel.enable();
+    	
+    	if(aButton){ // Checks max speed of robot, changes it
+    		if(maxSpeed = 0.25){
+    			maxSpeed = 1;
+    			timer.delay(0.25)
+    		}
+    		else{
+    			maxSpeed = 0.25;
+    			timer.delay(0.25);
+    		}
+    	}
+    	
     	if(Fmove > 0){ // Moving Forwards
-    		move.drive(Fmove * -0.75, Turn);
+    		move.drive(-1 * Fmove * maxSpeed , Turn);
     	}
     	
     	else if(Rmove > 0){ // Moving Backwards
-    		move.drive(Rmove * 0.75, Turn);
+    		move.drive(Rmove * maxSpeed, Turn);
     	}
     	
     	if(bButton){ // B button down, moves towards robot, intake
