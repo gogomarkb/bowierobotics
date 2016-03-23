@@ -1,15 +1,14 @@
-
 package org.usfirst.frc.team6213.robot;
 
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.buttons.JoystickButton;
 import edu.wpi.first.wpilibj.CANTalon;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.VictorSP;
+import edu.wpi.first.wpilibj.CameraServer;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -23,12 +22,14 @@ public class Robot extends IterativeRobot { // Prep everything
     final String customAuto = "My Auto";
     String autoSelected;
     SendableChooser chooser;
+    CameraServer camera; // For Webcam
     VictorSP left; // Left Victor
     VictorSP right; // Right Victor
     RobotDrive move; // Drive train Motors
     Joystick xbox; // Xbox Controller
 	CANTalon ballWheel ; // Talon to control the ball wheel motor
-	Timer time; // Timer
+	Timer timer; // Timer
+	public static double maxSpeed; // Used to set speed of robot
     /**
      * This function is run when the robot is first started up and should be
      * used for any initialization code.
@@ -38,13 +39,16 @@ public class Robot extends IterativeRobot { // Prep everything
         chooser.addDefault("Default Auto", defaultAuto);
         chooser.addObject("My Auto", customAuto);
         SmartDashboard.putData("Auto choices", chooser);
-        time = new Timer();
-        left = VictorSP(0);
-        right = VictorSP(1);
+        timer = new Timer();
+        left = new VictorSP(0);
+        right = new VictorSP(1);
         move = new RobotDrive(left,right);
         ballWheel = new CANTalon(1);
-        double maxSpeed = 0.25; // Used to set speed of robot
         xbox = new Joystick(0);
+        camera = CameraServer.getInstance();
+        camera.setQuality(50);
+        camera.startAutomaticCapture("cam0");
+        maxSpeed = 0.25;
     }
     
 	/**
@@ -56,9 +60,9 @@ public class Robot extends IterativeRobot { // Prep everything
 	 * You can add additional auto modes by adding additional comparisons to the switch structure below with additional strings.
 	 * If using the SendableChooser make sure to add them to the chooser code above as well.
 	 */
-    public void autonomousInit() { // Ignore :D
+    public void autonomousInit() {
     	autoSelected = (String) chooser.getSelected();
-//		autoSelected = SmartDashboard.getString("Auto Selector", defaultAuto);
+		autoSelected = SmartDashboard.getString("Auto Selector", defaultAuto);
 		System.out.println("Auto selected: " + autoSelected);
     }
 
@@ -72,8 +76,7 @@ public class Robot extends IterativeRobot { // Prep everything
             break;
     	case defaultAuto:
     	default:
-    		left.set(1.0);
-    		right.set(-1.0);
+    		autoMove(left,right); // Comment This to disable autonomous
             break;
     	}
     }
@@ -87,13 +90,13 @@ public class Robot extends IterativeRobot { // Prep everything
     	double Turn = xbox.getRawAxis(0); // Left stick X, turning
     	boolean bButton = xbox.getRawButton(2); // B button status
     	boolean  yButton = xbox.getRawButton(4); // Y button status
-    	boolean aButton = xbox.getRawButton(3); // A button status
-    	ballWheel.enable();
+    	boolean aButton = xbox.getRawButton(1); // A button status
+    	ballWheel.enable(); // Enable the CAN Talon
     	
     	if(aButton){ // Checks max speed of robot, changes it
-    		if(maxSpeed = 0.25){
+    		if(maxSpeed == 0.25){
     			maxSpeed = 1;
-    			timer.delay(0.25)
+    			timer.delay(0.25);
     		}
     		else{
     			maxSpeed = 0.25;
@@ -102,7 +105,7 @@ public class Robot extends IterativeRobot { // Prep everything
     	}
     	
     	if(Fmove > 0){ // Moving Forwards
-    		move.drive(-1 * Fmove * maxSpeed , Turn);
+    		move.drive(Fmove * -maxSpeed , Turn);
     	}
     	
     	else if(Rmove > 0){ // Moving Backwards
@@ -126,6 +129,13 @@ public class Robot extends IterativeRobot { // Prep everything
      */
     public void testPeriodic() {
     
+    }
+    
+    public void autoMove(VictorSP leftSide, VictorSP rightSide){
+    	left = leftSide;
+    	right = rightSide;
+    	left.set(0.25);
+    	right.set(-0.25);
     }
     
 }
